@@ -30,8 +30,8 @@ dev_dependencies:
 flutter_launcher_icons:
   windows:
     generate: true
-    image_path: "lib/assets/logo.png"
-    icon_size: 100
+    image_path: "lib/assets/defect.jpg"
+    icon_size: 256
 
 flutter:
   uses-material-design: true
@@ -40,3 +40,6 @@ flutter:
     - lib/assets/logo.png
     - lib/assets/my_logo.ico
     - lib/assets/background.jpg
+    - lib/assets/defect.ico
+    - lib/assets/defect.jpg
+
