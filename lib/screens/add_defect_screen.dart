@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../database/database_helper.dart';
-import '../models/defect_item.dart'; 
+import '../models/defect_item.dart';
 
 class AddDefectScreen extends StatefulWidget {
-  final String userName; 
+  final String userName;
 
   const AddDefectScreen({
     Key? key,
-    required this.userName, 
+    required this.userName,
   }) : super(key: key);
 
   @override
@@ -19,11 +19,11 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
   final List<String> _defectTypes = [
     'Poor punching quality',
     'CLIPID lens position',
-    'Defacted chip',
+    'Defected chip',
     'CLIPID lens defects',
   ];
 
-  String _selectedDefectType = 'Poor punching quality';
+  String _selectedDefectType = 'CLIPID lens position';
 
   final TextEditingController _docController = TextEditingController();
 
@@ -37,7 +37,7 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
   @override
   void initState() {
     super.initState();
-    _updateTime(); 
+    _updateTime();
     Timer.periodic(const Duration(seconds: 1), (Timer t) => _updateTime());
 
     _docController.addListener(() {
@@ -60,8 +60,7 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
 
   String _formatTime(DateTime time) {
     return "${time.hour.toString().padLeft(2, '0')}:"
-        "${time.minute.toString().padLeft(2, '0')}:"
-        "${time.second.toString().padLeft(2, '0')}";
+        "${time.minute.toString().padLeft(2, '0')}:";
   }
 
   void _onDocNumberChanged(String currentText) {
@@ -73,11 +72,10 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
         text: first,
         selection: TextSelection.collapsed(offset: 1),
       );
-      return; 
+      return;
     }
 
     if (currentText.length == 9) {
-      
       if (_isValidDocNumber(currentText)) {
         bool isDuplicate =
             _defectList.any((item) => item.documentNumber == currentText);
@@ -121,7 +119,7 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
       defectType: _selectedDefectType,
       documentNumber: docNumber,
       timestamp: DateTime.now(),
-      createdBy: widget.userName, 
+      createdBy: widget.userName,
     );
     setState(() {
       _defectList.add(newItem);
@@ -211,18 +209,19 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Add Defects - ${widget.userName}'),
-      
-      actions: [
+        actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Center(
               child: Text(
                 _currentTime,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ),
-        ],),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -253,7 +252,7 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
             SizedBox(
               height: MediaQuery.of(context).size.height / 50,
             ),
-Container(
+            Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -262,7 +261,8 @@ Container(
               ),
               child: Text(
                 'Documents in list: ${_defectList.length}',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -277,7 +277,6 @@ Container(
               maxLength: 9,
             ),
             const SizedBox(height: 10),
-
             Expanded(
               child: ListView.builder(
                 itemCount: _defectList.length,
@@ -296,7 +295,6 @@ Container(
                 },
               ),
             ),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

@@ -12,7 +12,7 @@ void main() async {
 
   if (Platform.isWindows) {
     const Size fixedSize = Size(1600,940);
-    setWindowTitle("Defacted Log App");
+    setWindowTitle("Defected Log App");
     setWindowMinSize(fixedSize);
     setWindowMaxSize(fixedSize);
     setWindowFrame(Rect.fromLTWH(100, 100, fixedSize.width, fixedSize.height));

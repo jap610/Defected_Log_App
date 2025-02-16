@@ -4,7 +4,7 @@ import '../screens/dashboard_screen.dart';
 import '../widgets/add_user_dialog.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   LoginScreenState createState() => LoginScreenState();
@@ -13,6 +13,13 @@ class LoginScreen extends StatefulWidget {
 class LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    usernameController.clear();
+    passwordController.clear();
+  }
 
   void _login() async {
     final username = usernameController.text.trim();
@@ -62,7 +69,6 @@ class LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Username
                   SizedBox(
                     height: MediaQuery.of(context).size.width / 15,
                   ),
@@ -73,7 +79,6 @@ class LoginScreenState extends State<LoginScreen> {
                       decoration: const InputDecoration(labelText: 'Username'),
                     ),
                   ),
-                  // Password
                   SizedBox(
                     width: MediaQuery.of(context).size.width / 4,
                     child: TextField(
@@ -94,9 +99,7 @@ class LoginScreenState extends State<LoginScreen> {
                   // Add user button
                   TextButton(
                     onPressed: () => showAddUserDialog(context),
-                    child: const Text(
-                      'Add User',
-                    ),
+                    child: const Text('Add User'),
                   ),
                 ],
               ),

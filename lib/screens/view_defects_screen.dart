@@ -30,7 +30,7 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
     'All',
     'Poor punching quality',
     'CLIPID lens position',
-    'Defacted chip',
+    'Defected chip',
     'CLIPID lens defects',
   ];
   String _selectedDefectType = 'All';

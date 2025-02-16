@@ -1,1 +1,1 @@
-const String adminFixedPassword = "admin123";
+const String adminFixedPassword = "ccpadmin2025";

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:defacted_log_app/route_observer.dart';
+import 'package:defected_log_app/route_observer.dart';
 import '../database/database_helper.dart';
 import 'add_defect_screen.dart';
 import 'view_defects_screen.dart';
@@ -30,7 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
   final Map<String, Color> categoryColors = {
     'Poor punching quality': Colors.red,
     'CLIPID lens position': Colors.green,
-    'Defacted chip': Colors.blue,
+    'Defected chip': Colors.blue,
     'CLIPID lens defects': Colors.orange,
   };
 

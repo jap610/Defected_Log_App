@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\defected_log_app\windows\CMakeFiles\9582ce8e67f4ffb78f5f0cfaff6d187d\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{EE6B4CA9-196E-367E-9F46-19B9DE01B8D3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

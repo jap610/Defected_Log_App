@@ -19,11 +19,11 @@ class DatabaseHelper {
     final exePath = Platform.resolvedExecutable; 
     final exeDir = p.dirname(exePath);
 
-    final localDbPath = p.join(exeDir, 'defacted_log_app.db');
+    final localDbPath = p.join(exeDir, 'defected_log_app.db');
 
     if (!File(localDbPath).existsSync()) {
       throw Exception(
-          "Database file `defacted_log_app.db` not found next to the exe at: $localDbPath");
+          "Database file `defected_log_app.db` not found next to the exe at: $localDbPath");
     }
 
     return await openDatabase(
