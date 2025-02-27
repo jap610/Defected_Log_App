@@ -1,31 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'show rootBundle; 
+import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
 import '../database/database_helper.dart';
 import '../models/defect_item.dart';
-import 'package:intl/intl.dart'; // For formatting dates
+import '../utils/pdf_export_helper.dart';  
 
 class ViewDefectsScreen extends StatefulWidget {
-  const ViewDefectsScreen({super.key});
+  const ViewDefectsScreen({Key? key}) : super(key: key);
 
   @override
   ViewDefectsScreenState createState() => ViewDefectsScreenState();
 }
 
 class ViewDefectsScreenState extends State<ViewDefectsScreen> {
-  // Master list of all defects from the DB
   List<DefectItem> _allDefects = [];
-  // Filtered list to display
+  
   List<DefectItem> _filteredDefects = [];
 
-  // Existing doc search
   final TextEditingController _searchController = TextEditingController();
 
-  // Created By filter
-  // We'll populate _allCreators from the data, plus an "All" option
   List<String> _allCreators = ['All'];
   String _selectedCreator = 'All';
 
   // Defect Type filter
-  // Add "All" to your existing defect types
   final List<String> _defectTypes = [
     'All',
     'Poor punching quality',
@@ -50,10 +48,10 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
     try {
       final defectsData = await DatabaseHelper.instance.getAllDefects();
       final items = defectsData.map((data) {
-        // fallback handling
         final createdByVal = data['created_by'] ?? 'Unknown';
         final timestampVal = data['timestamp'] ??
             DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
+
         return DefectItem(
           defectType: data['defect_type'] ?? 'N/A',
           documentNumber: data['document_number'] ?? 'N/A',
@@ -64,10 +62,10 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
 
       setState(() {
         _allDefects = items;
+
         final creatorsSet = {'All'};
         creatorsSet.addAll(_allDefects.map((item) => item.createdBy));
-        _allCreators = creatorsSet.toList();
-        _allCreators.sort();
+        _allCreators = creatorsSet.toList()..sort();
 
         _filteredDefects = _allDefects;
       });
@@ -83,16 +81,16 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
   void _applyFilters() {
     final query = _searchController.text.trim().toLowerCase();
 
-    List<DefectItem> filtered = _allDefects.where((defect) {
+    final filtered = _allDefects.where((defect) {
       final matchDoc = defect.documentNumber.toLowerCase().contains(query);
 
-      final matchCreatedBy = _selectedCreator == 'All'
+      final matchCreatedBy = (_selectedCreator == 'All')
           ? true
-          : defect.createdBy == _selectedCreator;
+          : (defect.createdBy == _selectedCreator);
 
-      final matchDefectType = _selectedDefectType == 'All'
+      final matchDefectType = (_selectedDefectType == 'All')
           ? true
-          : defect.defectType == _selectedDefectType;
+          : (defect.defectType == _selectedDefectType);
 
       final matchStart = (_startDate == null) ||
           defect.timestamp
@@ -152,10 +150,39 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('View Defects'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            tooltip: 'Export as PDF',
+            onPressed: () async {
+              try {
+                final logoData = await rootBundle.load('lib/assets/veridos-logo.png');
+                final logoBytes = logoData.buffer.asUint8List();
+
+                final filePath = await generateAndSaveDefectsPDF(
+                  _filteredDefects,
+                  _defectTypes,
+                  logoBytes,
+                );
+
+              
+                final result = await OpenFile.open(filePath);
+                debugPrint('OpenFile result: $result');
+
+              } catch (e) {
+                debugPrint('Error generating PDF: $e');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to generate PDF: $e'),
+                  ),
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
-          // Document Search
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -256,29 +283,33 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
                     itemBuilder: (context, index) {
                       final defect = _filteredDefects[index];
                       return Card(
-                          margin: EdgeInsets.symmetric(
-                              horizontal: 4, vertical: 2), // smaller margin
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Container(
-                                  width: MediaQuery.of(context).size.width / 7,
-                                  alignment: Alignment.center,
-                                  child: Text(defect.documentNumber)),
-                              Container(
-                                  width: MediaQuery.of(context).size.width / 7,
-                                  alignment: Alignment.center,
-                                  child: Text(defect.defectType)),
-                              Container(
-                                  width: MediaQuery.of(context).size.width / 4,
-                                  alignment: Alignment.center,
-                                  child: Text('${defect.timestamp}')),
-                              Container(
-                                  width: MediaQuery.of(context).size.width / 7,
-                                  alignment: Alignment.center,
-                                  child: Text(defect.createdBy))
-                            ],
-                          ));
+                        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Container(
+                              width: MediaQuery.of(context).size.width / 7,
+                              alignment: Alignment.center,
+                              child: Text(defect.documentNumber),
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width / 7,
+                              alignment: Alignment.center,
+                              child: Text(defect.defectType),
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width / 4,
+                              alignment: Alignment.center,
+                              child: Text('${defect.timestamp}'),
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width / 7,
+                              alignment: Alignment.center,
+                              child: Text(defect.createdBy),
+                            ),
+                          ],
+                        ),
+                      );
                     },
                   ),
           ),
