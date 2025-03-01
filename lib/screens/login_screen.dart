@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../screens/dashboard_screen.dart';
-import '../widgets/add_user_dialog.dart';
+import '../screens/admin_screen.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,6 +13,9 @@ class LoginScreen extends StatefulWidget {
 class LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  
+  final String _adminPassword = 'ccpadmin2025defected';
 
   @override
   void didChangeDependencies() {
@@ -54,6 +57,55 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<void> _showAdminPasswordPrompt() async {
+    final TextEditingController adminPassController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Admin Panel'),
+          content: TextField(
+            controller: adminPassController,
+            decoration: const InputDecoration(
+              labelText: 'Enter Admin Password',
+            ),
+            obscureText: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final enteredPassword = adminPassController.text.trim();
+                if (enteredPassword == _adminPassword) {
+                  Navigator.of(context).pop(true); // Indicate success
+                } else {
+                  Navigator.of(context).pop(false); // Indicate failure
+                }
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const AdminScreen(currentAdminUsername: 'admin'
+              ),
+        ),
+      );
+    } else if (result == false) {
+      _showMessage('Incorrect admin password.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,16 +142,16 @@ class LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Login button
                   ElevatedButton(
                     onPressed: _login,
                     child: const Text('Login'),
                   ),
                   const SizedBox(height: 10),
-                  // Add user button
-                  TextButton(
-                    onPressed: () => showAddUserDialog(context),
-                    child: const Text('Add User'),
+                  
+                 
+                  ElevatedButton(
+                    onPressed: _showAdminPasswordPrompt,
+                    child: const Text('Go to Admin Panel'),
                   ),
                 ],
               ),

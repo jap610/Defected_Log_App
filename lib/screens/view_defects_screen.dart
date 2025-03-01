@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'show rootBundle; 
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import '../database/database_helper.dart';
 import '../models/defect_item.dart';
-import '../utils/pdf_export_helper.dart';  
+import '../utils/pdf_export_helper.dart';
 
 class ViewDefectsScreen extends StatefulWidget {
   const ViewDefectsScreen({Key? key}) : super(key: key);
@@ -14,26 +14,19 @@ class ViewDefectsScreen extends StatefulWidget {
 }
 
 class ViewDefectsScreenState extends State<ViewDefectsScreen> {
+
   List<DefectItem> _allDefects = [];
-  
   List<DefectItem> _filteredDefects = [];
 
-  final TextEditingController _searchController = TextEditingController();
 
+  final TextEditingController _searchController = TextEditingController();
   List<String> _allCreators = ['All'];
   String _selectedCreator = 'All';
 
-  // Defect Type filter
-  final List<String> _defectTypes = [
-    'All',
-    'Poor punching quality',
-    'CLIPID lens position',
-    'Defected chip',
-    'CLIPID lens defects',
-  ];
+
+  List<String> _defectTypes = [];
   String _selectedDefectType = 'All';
 
-  // Date range filter
   DateTime? _startDate;
   DateTime? _endDate;
 
@@ -41,8 +34,10 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
   void initState() {
     super.initState();
     _loadDefects();
+    _loadDefectTypes();  
     _searchController.addListener(() => setState(() => _applyFilters()));
   }
+
 
   void _loadDefects() async {
     try {
@@ -78,6 +73,30 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
     }
   }
 
+ 
+  Future<void> _loadDefectTypes() async {
+    try {
+      final db = await DatabaseHelper.instance.database;
+      final results = await db.query('defect_types');
+
+      final typesFromDB =
+          results.map<String>((row) => row['defect_name'].toString()).toList();
+
+      typesFromDB.insert(0, 'All');
+
+      setState(() {
+        _defectTypes = typesFromDB;
+        _selectedDefectType = 'All'; 
+      });
+    } catch (e) {
+      debugPrint('Error loading defect types: $e');
+      setState(() {
+        _defectTypes = ['All'];
+        _selectedDefectType = 'All';
+      });
+    }
+  }
+
   void _applyFilters() {
     final query = _searchController.text.trim().toLowerCase();
 
@@ -93,16 +112,11 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
           : (defect.defectType == _selectedDefectType);
 
       final matchStart = (_startDate == null) ||
-          defect.timestamp
-              .isAfter(_startDate!.subtract(const Duration(days: 1)));
+          defect.timestamp.isAfter(_startDate!.subtract(const Duration(days: 1)));
       final matchEnd = (_endDate == null) ||
           defect.timestamp.isBefore(_endDate!.add(const Duration(days: 1)));
 
-      return matchDoc &&
-          matchCreatedBy &&
-          matchDefectType &&
-          matchStart &&
-          matchEnd;
+      return matchDoc && matchCreatedBy && matchDefectType && matchStart && matchEnd;
     }).toList();
 
     setState(() {
@@ -145,6 +159,7 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -156,6 +171,7 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
             tooltip: 'Export as PDF',
             onPressed: () async {
               try {
+                // Load logo
                 final logoData = await rootBundle.load('lib/assets/veridos-logo.png');
                 final logoBytes = logoData.buffer.asUint8List();
 
@@ -165,10 +181,8 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
                   logoBytes,
                 );
 
-              
                 final result = await OpenFile.open(filePath);
                 debugPrint('OpenFile result: $result');
-
               } catch (e) {
                 debugPrint('Error generating PDF: $e');
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -183,6 +197,7 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
       ),
       body: Column(
         children: [
+    
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -200,10 +215,12 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
             ),
           ),
 
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
               children: [
+                // Creator Filter
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: _selectedCreator,
@@ -249,6 +266,7 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
             ),
           ),
 
+   
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
             child: Row(
@@ -275,6 +293,7 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
             ),
           ),
 
+
           Expanded(
             child: _filteredDefects.isEmpty
                 ? const Center(child: Text('No defects found.'))
@@ -283,7 +302,10 @@ class ViewDefectsScreenState extends State<ViewDefectsScreen> {
                     itemBuilder: (context, index) {
                       final defect = _filteredDefects[index];
                       return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [

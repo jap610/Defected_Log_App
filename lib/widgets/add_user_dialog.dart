@@ -69,7 +69,7 @@ void _showUserForm(BuildContext context) {
                 ),
                 DropdownButton<String>(
                   value: selectedUserType,
-                  items: ['operator', 'engineer', 'manager']
+                  items: ['operator', 'engineer', 'manger']
                       .map((type) => DropdownMenuItem<String>(
                             value: type,
                             child: Text(type),

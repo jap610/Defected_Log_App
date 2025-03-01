@@ -16,21 +16,12 @@ class AddDefectScreen extends StatefulWidget {
 }
 
 class _AddDefectScreenState extends State<AddDefectScreen> {
-  final List<String> _defectTypes = [
-    'Poor punching quality',
-    'CLIPID lens position',
-    'Defected chip',
-    'CLIPID lens defects',
-  ];
-
-  String _selectedDefectType = 'CLIPID lens position';
+  List<String> _defectTypes = [];
+  String _selectedDefectType = '';
 
   final TextEditingController _docController = TextEditingController();
-
-  // Temporary list of defects
   final List<DefectItem> _defectList = [];
 
-  // Focus node to track user input
   final FocusNode _docFocusNode = FocusNode();
   String _currentTime = '';
 
@@ -43,6 +34,31 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
     _docController.addListener(() {
       _onDocNumberChanged(_docController.text);
     });
+
+    _loadDefectTypes();
+  }
+
+  Future<void> _loadDefectTypes() async {
+    try {
+      final db = await DatabaseHelper.instance.database;
+      final results = await db.query('defect_types');
+
+      final types =
+          results.map<String>((row) => row['defect_name'].toString()).toList();
+
+      setState(() {
+        _defectTypes = types;
+        if (_defectTypes.isNotEmpty) {
+          _selectedDefectType = _defectTypes.first;
+        } else {
+          _selectedDefectType = '';
+        }
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading defect types: $e')),
+      );
+    }
   }
 
   @override
@@ -65,7 +81,6 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
 
   void _onDocNumberChanged(String currentText) {
     if (currentText.isEmpty) return;
-
     if (currentText.length == 1) {
       String first = currentText[0].toUpperCase();
       _docController.value = TextEditingValue(
@@ -77,12 +92,14 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
 
     if (currentText.length == 9) {
       if (_isValidDocNumber(currentText)) {
-        bool isDuplicate =
-            _defectList.any((item) => item.documentNumber == currentText);
+        bool isDuplicate = _defectList.any(
+          (item) => item.documentNumber == currentText,
+        );
         if (isDuplicate) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text('Document $currentText is already in the list!')),
+              content: Text('Document $currentText is already in the list!'),
+            ),
           );
           _docController.clear();
           return;
@@ -93,8 +110,8 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content:
-                  Text('Invalid document number! Must be Letter+8 digits.')),
+            content: Text('Invalid document number! Must be Letter+8 digits.'),
+          ),
         );
         _docController.clear();
       }
@@ -114,7 +131,15 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
     return true;
   }
 
+
   void _addDefectItem(String docNumber) {
+    if (_selectedDefectType.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No defect types available.')),
+      );
+      return;
+    }
+
     final newItem = DefectItem(
       defectType: _selectedDefectType,
       documentNumber: docNumber,
@@ -183,8 +208,9 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
 
   Future<void> _saveDefects() async {
     if (_defectList.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('No defects to save!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No defects to save!')),
+      );
       return;
     }
 
@@ -194,13 +220,15 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
       await DatabaseHelper.instance.saveDefects(defectsToSave);
 
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Defects saved successfully!')));
+        const SnackBar(content: Text('Defects saved successfully!')),
+      );
       setState(() {
         _defectList.clear();
       });
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error saving defects: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving defects: $e')),
+      );
     }
   }
 
@@ -228,30 +256,34 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
           children: [
             Row(
               children: [
-                const Text('Defect Type:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 10),
-                DropdownButton<String>(
-                  value: _selectedDefectType,
-                  items: _defectTypes.map((type) {
-                    return DropdownMenuItem<String>(
-                      value: type,
-                      child: Text(type),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedDefectType = value;
-                      });
-                    }
-                  },
+                const Text(
+                  'Defect Type:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(width: 10),
+                if (_defectTypes.isEmpty)
+                  const Text('No defect types found in DB'),
+                if (_defectTypes.isNotEmpty)
+                  DropdownButton<String>(
+                    value: _selectedDefectType,
+                    items: _defectTypes.map((type) {
+                      return DropdownMenuItem<String>(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _selectedDefectType = value;
+                        });
+                      }
+                    },
+                  ),
               ],
             ),
-            SizedBox(
-              height: MediaQuery.of(context).size.height / 50,
-            ),
+
+            SizedBox(height: MediaQuery.of(context).size.height / 50),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -266,6 +298,7 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
                 textAlign: TextAlign.center,
               ),
             ),
+
             TextField(
               controller: _docController,
               focusNode: _docFocusNode,
@@ -276,6 +309,7 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
               keyboardType: TextInputType.text,
               maxLength: 9,
             ),
+
             const SizedBox(height: 10),
             Expanded(
               child: ListView.builder(
@@ -286,7 +320,8 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
                     title:
                         Text('${defect.documentNumber} - ${defect.defectType}'),
                     subtitle: Text(
-                        'Timestamp: ${defect.timestamp}\nCreated By: ${defect.createdBy}'),
+                      'Timestamp: ${defect.timestamp}\nCreated By: ${defect.createdBy}',
+                    ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => _deleteDefectItem(defect),
@@ -295,6 +330,8 @@ class _AddDefectScreenState extends State<AddDefectScreen> {
                 },
               ),
             ),
+
+            // Buttons: Clear & Save
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

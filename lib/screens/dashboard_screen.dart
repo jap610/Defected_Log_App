@@ -6,6 +6,7 @@ import 'view_defects_screen.dart';
 import '../widgets/stats_card.dart';
 import '../widgets/custom_range_card.dart';
 import '../widgets/trend_card.dart';
+import '../screens/edit_defects_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userName;
@@ -107,6 +108,20 @@ class _DashboardScreenState extends State<DashboardScreen> with RouteAware {
                       );
                     },
                     child: const Text('View Defects'),
+                  ),
+                  SizedBox(width: MediaQuery.of(context).size.width / 50),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => EditDefectsScreen(
+                            currentUserName: widget.userName,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Edit My Defects'),
                   ),
                   SizedBox(width: MediaQuery.of(context).size.width / 50),
                   ElevatedButton(
